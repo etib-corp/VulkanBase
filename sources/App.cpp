@@ -46,7 +46,6 @@ App::App(const std::string &name, const Version &version, const std::string &eng
 
 void App::run()
 {
-    this->initWindow();
     this->initVulkan();
     this->mainLoop();
     this->cleanup();
@@ -64,6 +63,7 @@ void App::initWindow()
 
 void App::initVulkan()
 {
+    this->initWindow();
     this->createInstance();
     this->setupDebugMessenger();
     this->createSurface();
@@ -244,7 +244,7 @@ std::vector<const char*> getRequiredExtensions()
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    extensions.push_back("VK_KHR_portability_enumeration");
+  extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
     if (enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
@@ -274,22 +274,27 @@ void App::createInstance()
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    
+      std::cout << "Required extensions:" << std::endl;
+        for (const auto &ext : extensions) {
+            std::cout << "\t" << ext << std::endl;
+        }
+
+
+    if (enableValidationLayers) {
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+
+        populateDebugMessengerCreateInfo(debugCreateInfo);
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+    }
+
     createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
-
-    populateDebugMessengerCreateInfo(debugCreateInfo);
-    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
 
     VkResult result = vkCreateInstance(&createInfo, nullptr, &_instance);
 
     if (result == VK_ERROR_INCOMPATIBLE_DRIVER) {
         std::cout << "Failed to create instance due to incompatible driver ! Trying with MacOS settings..." << std::endl;
         
-        extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-        extensions.emplace_back("VK_KHR_portability_enumeration");
-
         createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
         createInfo.enabledExtensionCount = (uint32_t) extensions.size();
@@ -576,8 +581,8 @@ void App::createImageViews()
 
 void App::createGraphicsPipeline()
 {
-    auto vertShaderCode = Utils::readFile("shaders/vert.spv");
-    auto fragShaderCode = Utils::readFile("shaders/frag.spv");
+    auto vertShaderCode = Utils::readFile("compiled_shaders/vert.spv");
+    auto fragShaderCode = Utils::readFile("compiled_shaders/frag.spv");
 
     VkShaderModule vertShaderModule = this->createShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = this->createShaderModule(fragShaderCode);

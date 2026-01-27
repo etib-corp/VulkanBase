@@ -5,32 +5,12 @@
 //  Created by Nathan Maillot on 06/03/2025.
 //
 
-#ifndef _ETIB_APP_HPP_
-#define _ETIB_APP_HPP_
+#pragma once
 
-    #include <vulkan/vulkan.h>
+    #include "Vulkan.hpp"
+
     #include "Utils.hpp"
     #include "Version.hpp"
-
-#ifdef _WIN32
-    #define VK_USE_PLATFORM_WIN32_KHR
-#endif
-
-    #define GLFW_INCLUDE_VULKAN
-    #include <GLFW/glfw3.h>
-
-#ifdef _WIN32
-    #define GLFW_EXPOSE_NATIVE_WIN32
-#endif
-
-    #define GLM_FORCE_RADIANS
-    #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-    #include <glm/glm.hpp>
-    #include <glm/gtc/matrix_transform.hpp>
-    #define GLM_ENABLE_EXPERIMENTAL
-    #include <glm/gtx/hash.hpp>
-
-    #include <GLFW/glfw3native.h>
 
     #include <iostream>
     #include <stdexcept>
@@ -318,5 +298,3 @@ namespace std {
         }
     };
 }
-
-#endif

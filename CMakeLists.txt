@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(vulkan-tutorial)
 
+find_package(Vulkan REQUIRED)
+
 # Set global C++ standard and properties
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,14 +24,14 @@ include_directories(${HEADERS_DIR})
 # FetchContent module
 include(FetchContent)
 
-# Fetch Vulkan-Headers
-FetchContent_Declare(Vulkan-Headers
-    GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
-    GIT_TAG v1.4.329
-    GIT_SHALLOW TRUE
-    GIT_PROGRESS TRUE
-)
-FetchContent_MakeAvailable(Vulkan-Headers)
+# # Fetch Vulkan-Headers
+# FetchContent_Declare(Vulkan-Headers
+#     GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
+#     GIT_TAG v1.4.329
+#     GIT_SHALLOW TRUE
+#     GIT_PROGRESS TRUE
+# )
+# FetchContent_MakeAvailable(Vulkan-Headers)
 
 set(GLM_BUILD_TESTS OFF)
 FetchContent_Declare(glm
@@ -40,13 +42,13 @@ FetchContent_Declare(glm
 )
 FetchContent_MakeAvailable(glm)
 
-# Collect common source files
-file(GLOB SOURCES_COMMON "${SOURCES_DIR}/common/*.cpp" "${SOURCES_DIR}/*.cpp")
+# Collect all source files
+file(GLOB_RECURSE PROJECT_SOURCES "${SOURCES_DIR}/*.cpp")
 
-add_executable(${PROJECT_NAME} ${SOURCES_COMMON})
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} main.cpp)
 
 # Link common dependencies
-target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan-Headers glm)
+target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan glm)
 
 # Fetch GLFW for window management
 FetchContent_Declare(glfw
@@ -56,9 +58,6 @@ FetchContent_Declare(glfw
     GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(glfw)
-
-# Add Vulkan compile definition
-add_compile_definitions(__GLFW__)
 
 # Collect Vulkan-specific source files
 file(GLOB_RECURSE GLFW_SOURCES "${SOURCES_DIR}/glfw/*.cpp")

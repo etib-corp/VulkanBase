@@ -5,10 +5,9 @@
 //  Created by Nathan Maillot on 06/03/2025.
 //
 
-#ifndef _ETIB_VERSION_HPP_
-#define _ETIB_VERSION_HPP_
+#pragma once
 
-    #include <vulkan/vulkan.h>
+    #include "Vulkan.hpp"
     #include <cstdint>
 
 class Version {
@@ -23,4 +22,3 @@ class Version {
         unsigned int _patch;
 };
 
-#endif
