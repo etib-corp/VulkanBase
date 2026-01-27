@@ -45,7 +45,7 @@ FetchContent_MakeAvailable(glm)
 # Collect all source files
 file(GLOB_RECURSE PROJECT_SOURCES "${SOURCES_DIR}/*.cpp")
 
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} main.cpp)
+add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES})
 
 # Link common dependencies
 target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan glm)
