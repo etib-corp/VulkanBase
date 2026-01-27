@@ -41,6 +41,17 @@ const std::vector<const char*> deviceExtensions = {
     const bool enableValidationLayers = true;
 #endif
 
+
+/**
+ * Abstract Application Class
+ *
+ * This class defines the basic structure of a Vulkan application.
+ *
+ * It does not implement the loadModel method, which should be provided by derived classes.
+ *
+ * You should inherit from this class and implement the loadModel method to define how models are loaded in your application.
+ * On creation, please provide the application name, version, engine name, and engine version.
+ */
 class AApp {
     public:
         virtual ~AApp() = default;
