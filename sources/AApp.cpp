@@ -1612,7 +1612,7 @@ void AApp::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth
     endSingleTimeCommands(commandBuffer);
 }
 
-VkSampleCountFlagBits App::getMaxUsableSampleCount()
+VkSampleCountFlagBits AApp::getMaxUsableSampleCount()
 {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(_physicalDevice, &physicalDeviceProperties);
@@ -1628,7 +1628,7 @@ VkSampleCountFlagBits App::getMaxUsableSampleCount()
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void App::createColorResources()
+void AApp::createColorResources()
 {
     VkFormat colorFormat = _swapChainImageFormat;
 
