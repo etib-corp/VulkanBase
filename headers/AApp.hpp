@@ -191,7 +191,6 @@ class AApp {
         std::string _engineName;
         Version *_engineVersion;
 
-    private:
         // Initialization
         void initWindow();
         void initVulkan();
@@ -285,9 +284,6 @@ class AApp {
         VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
         VkFormat findDepthFormat();
         bool hasStencilComponent(VkFormat format);
-
-        // Models
-        virtual void loadModel() = 0;
 
         // MipMaps
         void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
