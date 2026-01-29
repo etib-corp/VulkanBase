@@ -47,7 +47,7 @@ file(GLOB_RECURSE PROJECT_SOURCES "${SOURCES_DIR}/*.cpp")
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES})
 
 # Link common dependencies
-target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan glm)
+target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan glm)
 
 # Fetch GLFW for window management
 FetchContent_Declare(glfw
@@ -65,7 +65,7 @@ file(GLOB_RECURSE GLFW_SOURCES "${SOURCES_DIR}/glfw/*.cpp")
 target_sources(${PROJECT_NAME} PRIVATE ${GLFW_SOURCES})
 
 # Link Vulkan dependencies
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
 
 # Configure public interface
 target_include_directories(${PROJECT_NAME}
