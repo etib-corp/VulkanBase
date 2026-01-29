@@ -294,6 +294,9 @@ class AApp {
 
         // Extensions
         std::vector<const char*> getRequiredExtensions();
+
+        // model loading
+        virtual void loadModel() = 0;
 };
 
 namespace std {
