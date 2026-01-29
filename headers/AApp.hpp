@@ -7,19 +7,19 @@
 
 #pragma once
 
-    #include "Vulkan.hpp"
+#include "Vulkan.hpp"
 
-    #include "Utils.hpp"
-    #include "Version.hpp"
+#include "Utils.hpp"
+#include "Version.hpp"
 
-    #include <iostream>
-    #include <stdexcept>
-    #include <cstdlib>
-    #include <map>
-    #include <optional>
-    #include <set>
-    #include <chrono>
-    #include <unordered_map>
+#include <iostream>
+#include <stdexcept>
+#include <cstdlib>
+#include <map>
+#include <optional>
+#include <set>
+#include <chrono>
+#include <unordered_map>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -28,65 +28,71 @@ std::string TEXTURE_PATH = "";
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
-const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-};
+const std::vector<const char *> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"};
 
-const std::vector<const char*> deviceExtensions = {
+const std::vector<const char *> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    "VK_KHR_portability_subset"
-};
+    "VK_KHR_portability_subset"};
 
 #ifdef NDEBUG
-    const bool enableValidationLayers = false;
+const bool enableValidationLayers = false;
 #else
-    const bool enableValidationLayers = true;
+const bool enableValidationLayers = true;
 #endif
 
-
-/**
- * Abstract Application Class
- *
- * This class defines the basic structure of a Vulkan application.
- *
- * It does not implement the loadModel method, which should be provided by derived classes.
- *
- * You should inherit from this class and implement the loadModel method to define how models are loaded in your application.
- * On creation, please provide the application name, version, engine name, and engine version.
- */
-class AApp {
+namespace etib
+    /**
+     * Abstract Application Class
+     *
+     * This class defines the basic structure of a Vulkan application.
+     *
+     * It does not implement the loadModel method, which should be provided by derived classes.
+     *
+     * You should inherit from this class and implement the loadModel method to define how models are loaded in your application.
+     * On creation, please provide the application name, version, engine name, and engine version.
+     */
+{
+    class AApp
+    {
     public:
         virtual ~AApp() = default;
 
         void run();
 
-        struct QueueFamilyIndices {
+        struct QueueFamilyIndices
+        {
             std::optional<uint32_t> graphicsFamily;
             std::optional<uint32_t> presentFamily;
 
-            bool isComplete() {
+            bool isComplete()
+            {
                 return graphicsFamily.has_value() && presentFamily.has_value();
             }
         };
 
-        struct SwapChainSupportDetails {
+        struct SwapChainSupportDetails
+        {
             VkSurfaceCapabilitiesKHR capabilities;
             std::vector<VkSurfaceFormatKHR> formats;
             std::vector<VkPresentModeKHR> presentModes;
         };
 
-        struct UniformBufferObject {
+        struct UniformBufferObject
+        {
             glm::mat4 model;
             glm::mat4 view;
             glm::mat4 proj;
         };
 
-        struct Vertex {
+        struct Vertex
+        {
             glm::vec3 pos;
             glm::vec3 color;
             glm::vec2 texCoord;
 
-            static VkVertexInputBindingDescription getBindingDescription() {
+            static VkVertexInputBindingDescription getBindingDescription()
+            {
                 VkVertexInputBindingDescription bindingDescription{};
                 bindingDescription.binding = 0;
                 bindingDescription.stride = sizeof(Vertex);
@@ -95,7 +101,8 @@ class AApp {
                 return bindingDescription;
             }
 
-            static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+            static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+            {
                 std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
                 attributeDescriptions[0].binding = 0;
@@ -116,7 +123,8 @@ class AApp {
                 return attributeDescriptions;
             }
 
-            bool operator==(const Vertex& other) const {
+            bool operator==(const Vertex &other) const
+            {
                 return pos == other.pos && color == other.color && texCoord == other.texCoord;
             }
         };
@@ -165,7 +173,7 @@ class AApp {
 
         std::vector<VkBuffer> _uniformBuffers;
         std::vector<VkDeviceMemory> _uniformBuffersMemory;
-        std::vector<void*> _uniformBuffersMapped;
+        std::vector<void *> _uniformBuffersMapped;
 
         std::vector<VkSemaphore> _imageAvailableSemaphores;
         std::vector<VkSemaphore> _renderFinishedSemaphores;
@@ -198,8 +206,8 @@ class AApp {
         // Debug
         void setupDebugMessenger();
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-        VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
-        void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+        VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDebugUtilsMessengerEXT *pDebugMessenger);
+        void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks *pAllocator);
 
         // Routine
         void mainLoop();
@@ -226,9 +234,9 @@ class AApp {
 
         // Swap Chain
         SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+        VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
         void createSwapChain();
         void createImageViews();
         void recreateSwapChain();
@@ -238,7 +246,7 @@ class AApp {
         void createGraphicsPipeline();
 
         // Shaders
-        VkShaderModule createShaderModule(const std::vector<char>& code);
+        VkShaderModule createShaderModule(const std::vector<char> &code);
 
         // Render Passes
         void createRenderPass();
@@ -257,7 +265,7 @@ class AApp {
 
         // Vertex
         void createVertexBuffer();
-        void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+        void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
         void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
         void createIndexBuffer();
 
@@ -270,7 +278,7 @@ class AApp {
 
         // Textures
         void createTextureImage();
-        void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+        void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
         void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
@@ -281,7 +289,7 @@ class AApp {
 
         // Depth buffering
         void createDepthResources();
-        VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+        VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
         VkFormat findDepthFormat();
         bool hasStencilComponent(VkFormat format);
 
@@ -293,17 +301,23 @@ class AApp {
         void createColorResources();
 
         // Extensions
-        std::vector<const char*> getRequiredExtensions();
+        std::vector<const char *> getRequiredExtensions();
 
         // model loading
         virtual void loadModel() = 0;
-};
+    };
 
-namespace std {
-    template<> struct hash<AApp::Vertex> {
-        size_t operator()(AApp::Vertex const& vertex) const {
+}
+namespace std
+{
+    template <>
+    struct hash<AApp::Vertex>
+    {
+        size_t operator()(AApp::Vertex const &vertex) const
+        {
             return ((hash<glm::vec3>()(vertex.pos) ^
-                   (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+                     (hash<glm::vec3>()(vertex.color) << 1)) >>
+                    1) ^
                    (hash<glm::vec2>()(vertex.texCoord) << 1);
         }
     };
