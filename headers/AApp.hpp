@@ -311,9 +311,9 @@ namespace etib
 namespace std
 {
     template <>
-    struct hash<AApp::Vertex>
+    struct hash<etib::AApp::Vertex>
     {
-        size_t operator()(AApp::Vertex const &vertex) const
+        size_t operator()(etib::AApp::Vertex const &vertex) const
         {
             return ((hash<glm::vec3>()(vertex.pos) ^
                      (hash<glm::vec3>()(vertex.color) << 1)) >>
