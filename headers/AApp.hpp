@@ -24,8 +24,13 @@
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
-#define TEXTURE_PATH ""
-#define MODEL_PATH ""
+#ifndef TEXTURE_PATH
+    #define TEXTURE_PATH ""
+#endif
+
+#ifndef MODEL_PATH
+    #define MODEL_PATH ""
+#endif
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
