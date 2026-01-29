@@ -17,7 +17,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
     return VK_FALSE;
 }
 
-VkResult AApp::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+VkResult etib::AApp::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -26,14 +26,14 @@ VkResult AApp::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUt
     }
 }
 
-void AApp::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+void etib::AApp::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
         func(instance, debugMessenger, pAllocator);
     }
 }
 
-void AApp::run()
+void etib::AApp::run()
 {
     this->initWindow();
     this->initVulkan();
@@ -41,7 +41,7 @@ void AApp::run()
     this->cleanup();
 }
 
-void AApp::initWindow()
+void etib::AApp::initWindow()
 {
     glfwInit();
 
@@ -51,7 +51,7 @@ void AApp::initWindow()
     _window = glfwCreateWindow(WIDTH, HEIGHT, _appName.c_str(), nullptr, nullptr);
 }
 
-void AApp::initVulkan()
+void etib::AApp::initVulkan()
 {
     this->createInstance();
     this->setupDebugMessenger();
@@ -80,7 +80,7 @@ void AApp::initVulkan()
     this->createSyncObjects();
 }
 
-void AApp::setupDebugMessenger()
+void etib::AApp::setupDebugMessenger()
 {
     if (!enableValidationLayers) return;
 
@@ -92,7 +92,7 @@ void AApp::setupDebugMessenger()
     }
 }
 
-void AApp::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+void etib::AApp::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
 {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -101,7 +101,7 @@ void AApp::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &
     createInfo.pfnUserCallback = debugCallback;
 }
 
-bool AApp::checkDeviceExtensionSupport(VkPhysicalDevice device)
+bool etib::AApp::checkDeviceExtensionSupport(VkPhysicalDevice device)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -118,7 +118,7 @@ bool AApp::checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-bool AApp::isDeviceSuitable(VkPhysicalDevice device) {
+bool etib::AApp::isDeviceSuitable(VkPhysicalDevice device) {
     QueueFamilyIndices indices = this->findQueueFamilies(device);
     bool extensionsSupported = checkDeviceExtensionSupport(device);
     bool swapChainAdequate = false;
@@ -133,7 +133,7 @@ bool AApp::isDeviceSuitable(VkPhysicalDevice device) {
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-void AApp::pickPhysicalDevice()
+void etib::AApp::pickPhysicalDevice()
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
@@ -158,7 +158,7 @@ void AApp::pickPhysicalDevice()
     }
 }
 
-void AApp::mainLoop()
+void etib::AApp::mainLoop()
 {
     while (!glfwWindowShouldClose(_window)) {
         glfwPollEvents();
@@ -167,7 +167,7 @@ void AApp::mainLoop()
     vkDeviceWaitIdle(_logicalDevice);
 }
 
-void AApp::cleanup()
+void etib::AApp::cleanup()
 {
     this->cleanupSwapChain();
 
@@ -227,7 +227,7 @@ void AApp::cleanup()
     glfwTerminate();
 }
 
-std::vector<const char*> AApp::getRequiredExtensions()
+std::vector<const char*> etib::AApp::getRequiredExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -241,7 +241,7 @@ std::vector<const char*> AApp::getRequiredExtensions()
 }
 
 
-void AApp::createInstance()
+void etib::AApp::createInstance()
 {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
         throw std::runtime_error("Validation layers requested, but not available!");
@@ -314,7 +314,7 @@ void AApp::createInstance()
     }
 }
 
-bool AApp::checkValidationLayerSupport()
+bool etib::AApp::checkValidationLayerSupport()
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -340,7 +340,7 @@ bool AApp::checkValidationLayerSupport()
 }
 
 
-AApp::QueueFamilyIndices AApp::findQueueFamilies(VkPhysicalDevice device)
+etib::AApp::QueueFamilyIndices etib::AApp::findQueueFamilies(VkPhysicalDevice device)
 {
     QueueFamilyIndices indices;
 
@@ -373,7 +373,7 @@ AApp::QueueFamilyIndices AApp::findQueueFamilies(VkPhysicalDevice device)
     return indices;
 }
 
-void AApp::createLogicalDevice()
+void etib::AApp::createLogicalDevice()
 {
     QueueFamilyIndices indices = findQueueFamilies(_physicalDevice);
 
@@ -420,7 +420,7 @@ void AApp::createLogicalDevice()
     vkGetDeviceQueue(_logicalDevice, indices.presentFamily.value(), 0, &_presentQueue);
 }
 
-void AApp::createSurface()
+void etib::AApp::createSurface()
 {
 #ifdef _WIN32
     VkWin32SurfaceCreateInfoKHR createInfo{};
@@ -442,7 +442,7 @@ void AApp::createSurface()
 #endif
 }
 
-AApp::SwapChainSupportDetails AApp::querySwapChainSupport(VkPhysicalDevice device)
+etib::AApp::SwapChainSupportDetails etib::AApp::querySwapChainSupport(VkPhysicalDevice device)
 {
     SwapChainSupportDetails details;
     uint32_t formatCount;
@@ -463,7 +463,7 @@ AApp::SwapChainSupportDetails AApp::querySwapChainSupport(VkPhysicalDevice devic
     return details;
 }
 
-VkSurfaceFormatKHR AApp::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR etib::AApp::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
     for (const auto& availableFormat : availableFormats) {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -473,7 +473,7 @@ VkSurfaceFormatKHR AApp::chooseSwapSurfaceFormat(const std::vector<VkSurfaceForm
     return availableFormats[0];
 }
 
-VkPresentModeKHR AApp::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+VkPresentModeKHR etib::AApp::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
     for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -484,7 +484,7 @@ VkPresentModeKHR AApp::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D AApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+VkExtent2D etib::AApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
     int width = 0;
     int height = 0;
@@ -505,7 +505,7 @@ VkExtent2D AApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
     return actualExtent;
 }
 
-void AApp::createSwapChain()
+void etib::AApp::createSwapChain()
 {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(_physicalDevice);
 
@@ -559,7 +559,7 @@ void AApp::createSwapChain()
     _swapChainExtent = extent;
 }
 
-void AApp::createImageViews()
+void etib::AApp::createImageViews()
 {
     _swapChainImageViews.resize(_swapChainImages.size());
 
@@ -568,7 +568,7 @@ void AApp::createImageViews()
     }
 }
 
-void AApp::createGraphicsPipeline()
+void etib::AApp::createGraphicsPipeline()
 {
     auto vertShaderCode = Utils::readFile("compiled_shaders/vert.spv");
     auto fragShaderCode = Utils::readFile("compiled_shaders/frag.spv");
@@ -698,7 +698,7 @@ void AApp::createGraphicsPipeline()
     vkDestroyShaderModule(_logicalDevice, vertShaderModule, nullptr);
 }
 
-VkShaderModule AApp::createShaderModule(const std::vector<char>& code) {
+VkShaderModule etib::AApp::createShaderModule(const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();
@@ -712,7 +712,7 @@ VkShaderModule AApp::createShaderModule(const std::vector<char>& code) {
     return shaderModule;
 }
 
-void AApp::createRenderPass()
+void etib::AApp::createRenderPass()
 {
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = _swapChainImageFormat;
@@ -786,7 +786,7 @@ void AApp::createRenderPass()
     }
 }
 
-void AApp::createFramebuffers()
+void etib::AApp::createFramebuffers()
 {
     _swapChainFramebuffers.resize(_swapChainImageViews.size());
 
@@ -812,7 +812,7 @@ void AApp::createFramebuffers()
     }
 }
 
-void AApp::createCommandPool()
+void etib::AApp::createCommandPool()
 {
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(_physicalDevice);
 
@@ -826,7 +826,7 @@ void AApp::createCommandPool()
     }
 }
 
-void AApp::createCommandBuffers()
+void etib::AApp::createCommandBuffers()
 {
     _commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -841,7 +841,7 @@ void AApp::createCommandBuffers()
     }
 }
 
-void AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+void etib::AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -899,7 +899,7 @@ void AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageInde
     }
 }
 
-void AApp::drawFrame()
+void etib::AApp::drawFrame()
 {
     vkWaitForFences(_logicalDevice, 1, &_inFlightFences[_currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -963,7 +963,7 @@ void AApp::drawFrame()
     _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void AApp::createSyncObjects() {
+void etib::AApp::createSyncObjects() {
     _imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     _renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     _inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -985,7 +985,7 @@ void AApp::createSyncObjects() {
     }
 }
 
-void AApp::cleanupSwapChain()
+void etib::AApp::cleanupSwapChain()
 {
     for (auto framebuffer : _swapChainFramebuffers) {
         vkDestroyFramebuffer(_logicalDevice, framebuffer, nullptr);
@@ -998,7 +998,7 @@ void AApp::cleanupSwapChain()
     vkDestroySwapchainKHR(+_logicalDevice, _swapChain, nullptr);
 }
 
-void AApp::recreateSwapChain() {
+void etib::AApp::recreateSwapChain() {
     int width = 0;
     int height = 0;
     while (width == 0 || height == 0) {
@@ -1017,7 +1017,7 @@ void AApp::recreateSwapChain() {
     this->createFramebuffers();
 }
 
-void AApp::createVertexBuffer()
+void etib::AApp::createVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertices.size();
     VkBuffer stagingBuffer;
@@ -1037,7 +1037,7 @@ void AApp::createVertexBuffer()
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
 
-uint32_t AApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t etib::AApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
 
     vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &memProperties);
@@ -1051,7 +1051,7 @@ uint32_t AApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propert
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-void AApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+void etib::AApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;
@@ -1077,7 +1077,7 @@ void AApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPro
     vkBindBufferMemory(_logicalDevice, buffer, bufferMemory, 0);
 }
 
-void AApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+void etib::AApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
     VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
 
@@ -1088,7 +1088,7 @@ void AApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     this->endSingleTimeCommands(commandBuffer);
 }
 
-void AApp::createIndexBuffer() {
+void etib::AApp::createIndexBuffer() {
     VkDeviceSize bufferSize = sizeof(_indices[0]) * _indices.size();
 
     VkBuffer stagingBuffer;
@@ -1108,7 +1108,7 @@ void AApp::createIndexBuffer() {
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
 
-void AApp::createDescriptorSetLayout()
+void etib::AApp::createDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
@@ -1135,7 +1135,7 @@ void AApp::createDescriptorSetLayout()
     }
 }
 
-void AApp::createUniformBuffers()
+void etib::AApp::createUniformBuffers()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -1150,7 +1150,7 @@ void AApp::createUniformBuffers()
     }
 }
 
-void AApp::updateUniformBuffer(uint32_t currentImage)
+void etib::AApp::updateUniformBuffer(uint32_t currentImage)
 {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -1165,7 +1165,7 @@ void AApp::updateUniformBuffer(uint32_t currentImage)
     memcpy(_uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
-void AApp::createDescriptorPool()
+void etib::AApp::createDescriptorPool()
 {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1184,7 +1184,7 @@ void AApp::createDescriptorPool()
     }
 }
 
-void AApp::createDescriptorSets()
+void etib::AApp::createDescriptorSets()
 {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
@@ -1230,7 +1230,7 @@ void AApp::createDescriptorSets()
     }
 }
 
-void AApp::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+void etib::AApp::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -1267,7 +1267,7 @@ void AApp::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSa
     vkBindImageMemory(_logicalDevice, image, imageMemory, 0);
 }
 
-void AApp::createTextureImage()
+void etib::AApp::createTextureImage()
 {
     int texWidth = 0;
     int texHeight = 0;
@@ -1301,7 +1301,7 @@ void AApp::createTextureImage()
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
 
-VkCommandBuffer AApp::beginSingleTimeCommands()
+VkCommandBuffer etib::AApp::beginSingleTimeCommands()
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1321,7 +1321,7 @@ VkCommandBuffer AApp::beginSingleTimeCommands()
     return commandBuffer;
 }
 
-void AApp::endSingleTimeCommands(VkCommandBuffer commandBuffer)
+void etib::AApp::endSingleTimeCommands(VkCommandBuffer commandBuffer)
 {
     vkEndCommandBuffer(commandBuffer);
 
@@ -1336,7 +1336,7 @@ void AApp::endSingleTimeCommands(VkCommandBuffer commandBuffer)
     vkFreeCommandBuffers(_logicalDevice, _commandPool, 1, &commandBuffer);
 }
 
-void AApp::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+void etib::AApp::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
     VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
 
     VkBufferImageCopy region{};
@@ -1359,7 +1359,7 @@ void AApp::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uin
     this->endSingleTimeCommands(commandBuffer);
 }
 
-void AApp::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
+void etib::AApp::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
 {
     VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
 
@@ -1424,7 +1424,7 @@ void AApp::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout o
     this->endSingleTimeCommands(commandBuffer);
 }
 
-VkImageView AApp::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+VkImageView etib::AApp::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
 {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -1446,12 +1446,12 @@ VkImageView AApp::createImageView(VkImage image, VkFormat format, VkImageAspectF
     return imageView;
 }
 
-void AApp::createTextureImageView()
+void etib::AApp::createTextureImageView()
 {
     _textureImageView = this->createImageView(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, _mipLevels);
 }
 
-void AApp::createTextureSampler()
+void etib::AApp::createTextureSampler()
 {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
@@ -1483,7 +1483,7 @@ void AApp::createTextureSampler()
     }
 }
 
-VkFormat AApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+VkFormat etib::AApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 {
     for (VkFormat format : candidates) {
         VkFormatProperties props;
@@ -1499,7 +1499,7 @@ VkFormat AApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkIm
     throw std::runtime_error("failed to find supported format!");
 }
 
-VkFormat AApp::findDepthFormat()
+VkFormat etib::AApp::findDepthFormat()
 {
     return findSupportedFormat(
         {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
@@ -1508,12 +1508,12 @@ VkFormat AApp::findDepthFormat()
     );
 }
 
-bool AApp::hasStencilComponent(VkFormat format)
+bool etib::AApp::hasStencilComponent(VkFormat format)
 {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-void AApp::createDepthResources()
+void etib::AApp::createDepthResources()
 {
     VkFormat depthFormat = this->findDepthFormat();
 
@@ -1522,7 +1522,7 @@ void AApp::createDepthResources()
     this->transitionImageLayout(_depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
 
-void AApp::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
+void etib::AApp::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
 {
     VkFormatProperties formatProperties;
     vkGetPhysicalDeviceFormatProperties(_physicalDevice, imageFormat, &formatProperties);
@@ -1609,7 +1609,7 @@ void AApp::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth
     endSingleTimeCommands(commandBuffer);
 }
 
-VkSampleCountFlagBits AApp::getMaxUsableSampleCount()
+VkSampleCountFlagBits etib::AApp::getMaxUsableSampleCount()
 {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(_physicalDevice, &physicalDeviceProperties);
@@ -1625,7 +1625,7 @@ VkSampleCountFlagBits AApp::getMaxUsableSampleCount()
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void AApp::createColorResources()
+void etib::AApp::createColorResources()
 {
     VkFormat colorFormat = _swapChainImageFormat;
 
