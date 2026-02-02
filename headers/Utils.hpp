@@ -27,6 +27,14 @@ class Utils {
 
             return buffer;
         }
+
+        static std::vector<std::string> readDirectory(const std::string &directoryPath)
+        {
+            std::vector<std::string> fileNames;
+            for (const auto & entry : std::filesystem::directory_iterator(directoryPath))
+                fileNames.push_back(entry.path().string());
+            return fileNames;
+        }
 };
 
 #endif
