@@ -128,7 +128,7 @@ namespace etib
         };
 
     protected:
-        std::string _textureFolerPath = "assets/textures/";
+        std::string _textureFolderPath = "assets/textures/";
 
         GLFWwindow *_window;
         VkSurfaceKHR _surface;
