@@ -206,7 +206,9 @@ void etib::AApp::cleanup()
 
     vkDestroyDescriptorPool(_logicalDevice, _descriptorPool, nullptr);
 
-    vkDestroyDescriptorSetLayout(_logicalDevice, _descriptorSetLayout, nullptr);
+    for (const auto& [_, layout] : _descriptorSetLayout) {
+        vkDestroyDescriptorSetLayout(_logicalDevice, layout, nullptr);
+    }
 
     vkDestroyBuffer(_logicalDevice, _indexBuffer, nullptr);
     vkFreeMemory(_logicalDevice, _indexBufferMemory, nullptr);
