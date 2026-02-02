@@ -64,7 +64,9 @@ void etib::AApp::initVulkan()
     this->createSwapChain();
     this->createImageViews();
     this->createRenderPass();
-    this->createDescriptorSetLayout();
+    for (const auto &texturePath : texturePaths) {
+        this->createDescriptorSetLayout(texturePath);
+    }
     this->createGraphicsPipeline();
     this->createCommandPool();
     this->createColorResources();
@@ -1120,7 +1122,7 @@ void etib::AApp::createIndexBuffer() {
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
 
-void etib::AApp::createDescriptorSetLayout()
+void etib::AApp::createDescriptorSetLayout(const std::string& textureName)
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
@@ -1142,7 +1144,7 @@ void etib::AApp::createDescriptorSetLayout()
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     layoutInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(_logicalDevice, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
+    if (vkCreateDescriptorSetLayout(_logicalDevice, &layoutInfo, nullptr, &_descriptorSetLayout[textureName]) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
 }
@@ -1198,8 +1200,8 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    for (auto [name, textureImageView]: _textureImageView) {
-        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
+    for (auto [name, descriptor]: _descriptorSetLayout) {
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptor);
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = _descriptorPool;
@@ -1218,7 +1220,7 @@ void etib::AApp::createDescriptorSets()
             
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = textureImageView;
+            imageInfo.imageView = _textureImageView[name];
             imageInfo.sampler = _textureSampler[name];
             
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};

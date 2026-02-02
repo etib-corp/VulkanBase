@@ -137,7 +137,7 @@ namespace etib
 
         VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
-        VkDescriptorSetLayout _descriptorSetLayout;
+        std::map<std::string, VkDescriptorSetLayout> _descriptorSetLayout;
         VkPipelineLayout _pipelineLayout;
 
         VkDescriptorPool _descriptorPool;
