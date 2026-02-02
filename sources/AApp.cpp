@@ -1293,7 +1293,7 @@ void etib::AApp::createTextureImage(const std::string &texturePath)
     VkDeviceMemory stagingBufferMemory;
 
     if (!pixels) {
-        throw std::runtime_error("failed to load texture image :" + std::string(stbi_failure_reason()));
+        throw std::runtime_error("[" + texturePath + "]" + "Failed to load texture image :" + std::string(stbi_failure_reason()));
     }
 
     _mipLevels[texturePath] = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
