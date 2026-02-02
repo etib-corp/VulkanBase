@@ -53,7 +53,7 @@ void etib::AApp::initWindow()
 
 void etib::AApp::initVulkan()
 {
-    std::vector<std::string> texturePaths = Utils::readDirectory(_textureFolerPath);
+    std::vector<std::string> texturePaths = Utils::readDirectory(_textureFolderPath);
 
 
     this->createInstance();
