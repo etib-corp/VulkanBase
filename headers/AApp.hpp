@@ -24,14 +24,6 @@
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
-#ifndef TEXTURE_PATH
-    #define TEXTURE_PATH ""
-#endif
-
-#ifndef MODEL_PATH
-    #define MODEL_PATH ""
-#endif
-
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char *> validationLayers = {
@@ -136,6 +128,8 @@ namespace etib
         };
 
     protected:
+        std::string _textureFolerPath = "assets/textures/";
+
         GLFWwindow *_window;
         VkSurfaceKHR _surface;
         VkInstance _instance;
@@ -160,11 +154,11 @@ namespace etib
         VkCommandPool _commandPool;
         std::vector<VkCommandBuffer> _commandBuffers;
 
-        uint32_t _mipLevels;
-        VkImage _textureImage;
+        std::map<std::string, uint32_t> _mipLevels;
+        std::map<std::string, VkImage> _textureImage;
         VkDeviceMemory _textureImageMemory;
-        VkImageView _textureImageView;
-        VkSampler _textureSampler;
+        std::map<std::string, VkImageView> _textureImageView;
+        std::map<std::string, VkSampler> _textureSampler;
 
         VkImage _depthImage;
         VkDeviceMemory _depthImageMemory;
@@ -283,7 +277,7 @@ namespace etib
         void createDescriptorSets();
 
         // Textures
-        void createTextureImage();
+        void createTextureImage(const std::string &texturePath);
         void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
