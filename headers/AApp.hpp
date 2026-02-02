@@ -270,7 +270,7 @@ namespace etib
         void createIndexBuffer();
 
         // Uniform buffers
-        void createDescriptorSetLayout();
+        void createDescriptorSetLayout(const std::string& textureName);
         void createUniformBuffers();
         void updateUniformBuffer(uint32_t currentImage);
         void createDescriptorPool();
