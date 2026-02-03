@@ -269,12 +269,6 @@ void etib::AApp::createInstance()
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 
-      std::cout << "Required extensions:" << std::endl;
-        for (const auto &ext : extensions) {
-            std::cout << "\t" << ext << std::endl;
-        }
-
-
     if (enableValidationLayers) {
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
@@ -288,8 +282,6 @@ void etib::AApp::createInstance()
     VkResult result = vkCreateInstance(&createInfo, nullptr, &_instance);
 
     if (result == VK_ERROR_INCOMPATIBLE_DRIVER) {
-        std::cout << "Failed to create instance due to incompatible driver ! Trying with MacOS settings..." << std::endl;
-
         createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
         createInfo.enabledExtensionCount = (uint32_t) extensions.size();
@@ -909,35 +901,24 @@ void etib::AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t ima
 
 void etib::AApp::drawFrame()
 {
-    std::cout << "Drawing frame " << _currentFrame << std::endl;
-
     vkWaitForFences(_logicalDevice, 1, &_inFlightFences[_currentFrame], VK_TRUE, UINT64_MAX);
-
-    std::cout << "Fence signaled for frame " << _currentFrame << std::endl;
 
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(_logicalDevice, _swapChain, UINT64_MAX, _imageAvailableSemaphores[_currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-    std::cout << "Acquired image " << imageIndex << " for frame " << _currentFrame << std::endl;
-
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         this->recreateSwapChain();
-        std::cout << "Swap chain out of date, recreated swap chain." << std::endl;
         return;
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
     this->updateUniformBuffer(_currentFrame);
-    std::cout << "Updated uniform buffer for frame " << _currentFrame << std::endl;
 
     vkResetFences(_logicalDevice, 1, &_inFlightFences[_currentFrame]);
-    std::cout << "Reset fence for frame " << _currentFrame << std::endl;
 
     vkResetCommandBuffer(_commandBuffers[_currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-    std::cout << "Reset command buffer for frame " << _currentFrame << std::endl;
     this->recordCommandBuffer(_commandBuffers[_currentFrame], imageIndex);
-    std::cout << "Recorded command buffer for frame " << _currentFrame << std::endl;
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -958,7 +939,6 @@ void etib::AApp::drawFrame()
     if (vkQueueSubmit(_graphicsQueue, 1, &submitInfo, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
-    std::cout << "Submitted command buffer for frame " << _currentFrame << std::endl;
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -974,18 +954,12 @@ void etib::AApp::drawFrame()
 
     result = vkQueuePresentKHR(_presentQueue, &presentInfo);
 
-    std::cout << "Presented image for frame " << _currentFrame << std::endl;
-
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        std::cout << "Swap chain out of date or suboptimal, recreating swap chain." << std::endl;
         this->recreateSwapChain();
     } else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }
-
-    std::cout << "Frame " << _currentFrame << " drawn successfully." << std::endl;
     _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-    std::cout << "Moving to next frame: " << _currentFrame << std::endl;
 }
 
 void etib::AApp::createSyncObjects() {
