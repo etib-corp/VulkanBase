@@ -1261,6 +1261,7 @@ void etib::AApp::createImage(uint32_t width, uint32_t height, uint32_t mipLevels
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = usage;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.mipLevels = mipLevels;
     imageInfo.samples = numSamples;
 
     if (vkCreateImage(_logicalDevice, &imageInfo, nullptr, &image) != VK_SUCCESS) {
@@ -1309,7 +1310,7 @@ void etib::AApp::createTextureImage(const std::string &texturePath)
 
     this->createImage(texWidth, texHeight, _materials[texturePath].mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _materials[texturePath].image, _textureImageMemory);
 
-    this->transitionImageLayout(_materials[texturePath].image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _materials[texturePath].mipLevels);
+    // this->transitionImageLayout(_materials[texturePath].image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _materials[texturePath].mipLevels);
     this->copyBufferToImage(stagingBuffer, _materials[texturePath].image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
     this->generateMipmaps(_materials[texturePath].image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, _materials[texturePath].mipLevels);
     vkDestroyBuffer(_logicalDevice, stagingBuffer, nullptr);
