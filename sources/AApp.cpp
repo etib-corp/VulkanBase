@@ -191,7 +191,7 @@ void etib::AApp::cleanup()
     }
     vkFreeMemory(_logicalDevice, _textureImageMemory, nullptr);
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (size_t i = 0; i < (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size()); i++) {
         vkDestroyBuffer(_logicalDevice, _uniformBuffers[i], nullptr);
         vkFreeMemory(_logicalDevice, _uniformBuffersMemory[i], nullptr);
     }
@@ -211,7 +211,7 @@ void etib::AApp::cleanup()
 
     vkDestroyRenderPass(_logicalDevice, _renderPass, nullptr);
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (size_t i = 0; i < (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size()); i++) {
         vkDestroySemaphore(_logicalDevice, _renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(_logicalDevice, _imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(_logicalDevice, _inFlightFences[i], nullptr);
@@ -834,7 +834,7 @@ void etib::AApp::createCommandPool()
 
 void etib::AApp::createCommandBuffers()
 {
-    _commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    _commandBuffers.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -968,13 +968,13 @@ void etib::AApp::drawFrame()
         throw std::runtime_error("failed to present swap chain image!");
     }
 
-    _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    _currentFrame = (_currentFrame + 1) % (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
 }
 
 void etib::AApp::createSyncObjects() {
-    _imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    _renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    _inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    _imageAvailableSemaphores.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
+    _renderFinishedSemaphores.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
+    _inFlightFences.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
 
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -983,7 +983,7 @@ void etib::AApp::createSyncObjects() {
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (size_t i = 0; i < (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size()); i++) {
         if (vkCreateSemaphore(_logicalDevice, &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]) != VK_SUCCESS ||
             vkCreateSemaphore(_logicalDevice, &semaphoreInfo, nullptr, &_renderFinishedSemaphores[i]) != VK_SUCCESS ||
             vkCreateFence(_logicalDevice, &fenceInfo, nullptr, &_inFlightFences[i]) != VK_SUCCESS) {
@@ -1147,7 +1147,7 @@ void etib::AApp::createUniformBuffers()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() : MAX_FRAMES_IN_FLIGHT);
 
     _uniformBuffers.resize(maxDescriptorCount);
     _uniformBuffersMemory.resize(maxDescriptorCount);
