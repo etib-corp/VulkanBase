@@ -76,13 +76,21 @@ void etib::AApp::initVulkan()
     this->createTextureImageView();
     this->createTextureSampler();
     this->loadModel();
+    std::cout << "Model loaded: " << _vertices.size() << " vertices, " << _indices.size() << " indices." << std::endl;
     this->createVertexBuffer();
+    std::cout << "Vertex buffer created." << std::endl;
     this->createIndexBuffer();
+    std::cout << "Index buffer created." << std::endl;
     this->createUniformBuffers();
+    std::cout << "Uniform buffers created." << std::endl;
     this->createDescriptorPool();
+    std::cout << "Descriptor pool created." << std::endl;
     this->createDescriptorSets();
+    std::cout << "Descriptor sets created." << std::endl;
     this->createCommandBuffers();
+    std::cout << "Command buffers created." << std::endl;
     this->createSyncObjects();
+    std::cout << "Sync objects created." << std::endl;
 }
 
 void etib::AApp::setupDebugMessenger()
