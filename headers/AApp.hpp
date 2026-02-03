@@ -127,6 +127,14 @@ namespace etib
             }
         };
 
+        struct Material {
+            VkImage image;
+            VkImageView imageView;
+            VkSampler sampler;
+            uint32_t mipLevels;
+            std::vector<VkDescriptorSet> descriptorSets;
+        };
+
     protected:
         std::string _textureFolderPath = "assets/textures/";
 
@@ -141,7 +149,8 @@ namespace etib
         VkPipelineLayout _pipelineLayout;
 
         VkDescriptorPool _descriptorPool;
-        std::map<std::string, std::vector<VkDescriptorSet>> _descriptorSets;
+        std::map<std::string, Material> _materials;
+        VkDeviceMemory _textureImageMemory;
 
         VkPipeline _graphicsPipeline;
 
@@ -153,12 +162,6 @@ namespace etib
         std::vector<VkFramebuffer> _swapChainFramebuffers;
         VkCommandPool _commandPool;
         std::vector<VkCommandBuffer> _commandBuffers;
-
-        std::map<std::string, uint32_t> _mipLevels;
-        std::map<std::string, VkImage> _textureImage;
-        VkDeviceMemory _textureImageMemory;
-        std::map<std::string, VkImageView> _textureImageView;
-        std::map<std::string, VkSampler> _textureSampler;
 
         VkImage _depthImage;
         VkDeviceMemory _depthImageMemory;

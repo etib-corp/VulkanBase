@@ -184,16 +184,10 @@ void etib::AApp::cleanup()
     vkDestroyImage(_logicalDevice, _depthImage, nullptr);
     vkFreeMemory(_logicalDevice, _depthImageMemory, nullptr);
 
-    for (const auto& [_, sampler] : _textureSampler) {
-        vkDestroySampler(_logicalDevice, sampler, nullptr);
-    }
-
-    for (const auto& [_, imageView] : _textureImageView) {
-        vkDestroyImageView(_logicalDevice, imageView, nullptr);
-    }
-
-    for (const auto& [_, image] : _textureImage) {
-        vkDestroyImage(_logicalDevice, image, nullptr);
+    for (const auto& [_, material] : _materials) {
+        vkDestroySampler(_logicalDevice, material.sampler, nullptr);
+        vkDestroyImageView(_logicalDevice, material.imageView, nullptr);
+        vkDestroyImage(_logicalDevice, material.image, nullptr);
     }
     vkFreeMemory(_logicalDevice, _textureImageMemory, nullptr);
 
@@ -900,8 +894,8 @@ void etib::AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t ima
 
     vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (const auto &[_, descriptorSet]: _descriptorSets) {
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &descriptorSet[_currentFrame], 0, nullptr);
+    for (const auto &[_, material]: _materials) {
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &material.descriptorSets[_currentFrame], 0, nullptr);
     }
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(_indices.size()), 1, 0, 0, 0);
@@ -1153,11 +1147,13 @@ void etib::AApp::createUniformBuffers()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    _uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-    _uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-    _uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    _uniformBuffers.resize(maxDescriptorCount);
+    _uniformBuffersMemory.resize(maxDescriptorCount);
+    _uniformBuffersMapped.resize(maxDescriptorCount);
+
+    for (size_t i = 0; i < maxDescriptorCount; i++) {
         this->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
 
         vkMapMemory(_logicalDevice, _uniformBuffersMemory[i], 0, bufferSize, 0, &_uniformBuffersMapped[i]);
@@ -1181,7 +1177,7 @@ void etib::AApp::updateUniformBuffer(uint32_t currentImage)
 
 void etib::AApp::createDescriptorPool()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_descriptorSets.size() < MAX_FRAMES_IN_FLIGHT ? _descriptorSets.size() : MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() + 1 : MAX_FRAMES_IN_FLIGHT);
 
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1202,7 +1198,7 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_textureImage.size() < MAX_FRAMES_IN_FLIGHT ? _textureImage.size() + 1 : MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() + 1 : MAX_FRAMES_IN_FLIGHT);
     std::vector<VkDescriptorSetLayout> layouts(maxDescriptorCount, _descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -1210,12 +1206,12 @@ void etib::AApp::createDescriptorSets()
     allocInfo.descriptorSetCount = maxDescriptorCount;
     allocInfo.pSetLayouts = layouts.data();
 
-    for (auto [name, imageView]: _textureImageView) {
-        _descriptorSets[name].resize(maxDescriptorCount);
-        if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, _descriptorSets[name].data()) != VK_SUCCESS) {
+    for (auto [name, material]: _materials) {
+        material.descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, material.descriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
-        for (size_t i = 0; i < maxDescriptorCount; i++) {
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = _uniformBuffers[i];
             bufferInfo.offset = 0;
@@ -1223,13 +1219,13 @@ void etib::AApp::createDescriptorSets()
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = imageView;
-            imageInfo.sampler = _textureSampler[name];
+            imageInfo.imageView = material.imageView;
+            imageInfo.sampler = material.sampler;
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = _descriptorSets[name][i];
+            descriptorWrites[0].dstSet = material.descriptorSets[i];
             descriptorWrites[0].dstBinding = 0;
             descriptorWrites[0].dstArrayElement = 0;
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1237,7 +1233,7 @@ void etib::AApp::createDescriptorSets()
             descriptorWrites[0].pBufferInfo = &bufferInfo;
 
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = _descriptorSets[name][i];
+            descriptorWrites[1].dstSet = material.descriptorSets[i];
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1301,7 +1297,7 @@ void etib::AApp::createTextureImage(const std::string &texturePath)
         throw std::runtime_error("[" + texturePath + "]" + "Failed to load texture image :" + std::string(stbi_failure_reason()));
     }
 
-    _mipLevels[texturePath] = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+    _materials[texturePath].mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
     this->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
@@ -1311,11 +1307,11 @@ void etib::AApp::createTextureImage(const std::string &texturePath)
 
     stbi_image_free(pixels);
 
-    this->createImage(texWidth, texHeight, _mipLevels[texturePath], VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _textureImage[texturePath], _textureImageMemory);
+    this->createImage(texWidth, texHeight, _materials[texturePath].mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _materials[texturePath].image, _textureImageMemory);
 
-    this->transitionImageLayout(_textureImage[texturePath], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _mipLevels[texturePath]);
-    this->copyBufferToImage(stagingBuffer, _textureImage[texturePath], static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-    this->generateMipmaps(_textureImage[texturePath], VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, _mipLevels[texturePath]);
+    this->transitionImageLayout(_materials[texturePath].image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _materials[texturePath].mipLevels);
+    this->copyBufferToImage(stagingBuffer, _materials[texturePath].image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    this->generateMipmaps(_materials[texturePath].image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, _materials[texturePath].mipLevels);
     vkDestroyBuffer(_logicalDevice, stagingBuffer, nullptr);
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
@@ -1467,17 +1463,17 @@ VkImageView etib::AApp::createImageView(VkImage image, VkFormat format, VkImageA
 
 void etib::AApp::createTextureImageView()
 {
-    for (const auto &[name, _]: _textureImage) {
-        _textureImageView[name] = this->createImageView(_textureImage[name], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, _mipLevels[name]);
+    for (auto &[name, material]: _materials) {
+        _materials[name].imageView = this->createImageView(material.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, material.mipLevels);
     }
 }
 
 void etib::AApp::createTextureSampler()
 {
-    for (const auto &[name, _]: _textureImage) {
+    for (auto &[name, material]: _materials) {
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
-        
+
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
         samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -1497,10 +1493,10 @@ void etib::AApp::createTextureSampler()
         samplerInfo.maxLod = 0.0f;
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
         samplerInfo.minLod = 0.0f;
-        samplerInfo.maxLod = static_cast<float>(_mipLevels[name]);
+        samplerInfo.maxLod = static_cast<float>(material.mipLevels);
         samplerInfo.mipLodBias = 0.0f;
-        
-        if (vkCreateSampler(_logicalDevice, &samplerInfo, nullptr, &_textureSampler[name]) != VK_SUCCESS) {
+
+        if (vkCreateSampler(_logicalDevice, &samplerInfo, nullptr, &material.sampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
         }
     }
