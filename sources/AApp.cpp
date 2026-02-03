@@ -1206,6 +1206,7 @@ void etib::AApp::createDescriptorSets()
     allocInfo.descriptorSetCount = maxDescriptorCount;
     allocInfo.pSetLayouts = layouts.data();
 
+    std::cout << "Creating Descriptor Sets for " << _materials.size() << " materials and " << maxDescriptorCount << " max descriptors." << std::endl;
     for (auto [name, material]: _materials) {
         material.descriptorSets.resize(maxDescriptorCount);
         if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, material.descriptorSets.data()) != VK_SUCCESS) {
