@@ -137,11 +137,11 @@ namespace etib
 
         VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
-        std::map<std::string, VkDescriptorSetLayout> _descriptorSetLayout;
+        VkDescriptorSetLayout _descriptorSetLayout;
         VkPipelineLayout _pipelineLayout;
 
         VkDescriptorPool _descriptorPool;
-        std::vector<VkDescriptorSet> _descriptorSets;
+        std::map<std::string, std::vector<VkDescriptorSet>> _descriptorSets;
 
         VkPipeline _graphicsPipeline;
 
@@ -270,7 +270,7 @@ namespace etib
         void createIndexBuffer();
 
         // Uniform buffers
-        void createDescriptorSetLayout(const std::string& textureName);
+        void createDescriptorSetLayout();
         void createUniformBuffers();
         void updateUniformBuffer(uint32_t currentImage);
         void createDescriptorPool();

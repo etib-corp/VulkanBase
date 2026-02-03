@@ -64,9 +64,7 @@ void etib::AApp::initVulkan()
     this->createSwapChain();
     this->createImageViews();
     this->createRenderPass();
-    for (const auto &texturePath : texturePaths) {
-        this->createDescriptorSetLayout(texturePath);
-    }
+    this->createDescriptorSetLayout();
     this->createGraphicsPipeline();
     this->createCommandPool();
     this->createColorResources();
@@ -206,9 +204,7 @@ void etib::AApp::cleanup()
 
     vkDestroyDescriptorPool(_logicalDevice, _descriptorPool, nullptr);
 
-    for (const auto& [_, layout] : _descriptorSetLayout) {
-        vkDestroyDescriptorSetLayout(_logicalDevice, layout, nullptr);
-    }
+    vkDestroyDescriptorSetLayout(_logicalDevice, _descriptorSetLayout, nullptr);
 
     vkDestroyBuffer(_logicalDevice, _indexBuffer, nullptr);
     vkFreeMemory(_logicalDevice, _indexBufferMemory, nullptr);
@@ -668,14 +664,10 @@ void etib::AApp::createGraphicsPipeline()
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
-    std::vector<VkDescriptorSetLayout> layouts;
-    for (const auto& [_, layout] : _descriptorSetLayout) {
-        layouts.push_back(layout);
-    }
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(layouts.size());
-    pipelineLayoutInfo.pSetLayouts = layouts.data();
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
 
     if (vkCreatePipelineLayout(_logicalDevice, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
@@ -908,7 +900,9 @@ void etib::AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t ima
 
     vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_currentFrame], 0, nullptr);
+    for (const auto &[_, descriptorSet]: _descriptorSets) {
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &descriptorSet[_currentFrame], 0, nullptr);
+    }
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(_indices.size()), 1, 0, 0, 0);
 
@@ -1128,7 +1122,7 @@ void etib::AApp::createIndexBuffer() {
     vkFreeMemory(_logicalDevice, stagingBufferMemory, nullptr);
 }
 
-void etib::AApp::createDescriptorSetLayout(const std::string& textureName)
+void etib::AApp::createDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
@@ -1150,7 +1144,7 @@ void etib::AApp::createDescriptorSetLayout(const std::string& textureName)
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     layoutInfo.pBindings = bindings.data();
 
-    if (vkCreateDescriptorSetLayout(_logicalDevice, &layoutInfo, nullptr, &_descriptorSetLayout[textureName]) != VK_SUCCESS) {
+    if (vkCreateDescriptorSetLayout(_logicalDevice, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
 }
@@ -1206,20 +1200,16 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT);
+    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = _descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.pSetLayouts = layouts.data();
 
-    for (const auto& [_, layout] : _descriptorSetLayout) {
-        layouts.push_back(layout);
-    }
     for (auto [name, imageView]: _textureImageView) {
-        VkDescriptorSetAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = _descriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-        allocInfo.pSetLayouts = layouts.data();
-
-        _descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-        if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
+        _descriptorSets[name].resize(MAX_FRAMES_IN_FLIGHT);
+        if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, _descriptorSets[name].data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -1236,7 +1226,7 @@ void etib::AApp::createDescriptorSets()
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = _descriptorSets[i];
+            descriptorWrites[0].dstSet = _descriptorSets[name][i];
             descriptorWrites[0].dstBinding = 0;
             descriptorWrites[0].dstArrayElement = 0;
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1244,7 +1234,7 @@ void etib::AApp::createDescriptorSets()
             descriptorWrites[0].pBufferInfo = &bufferInfo;
 
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = _descriptorSets[i];
+            descriptorWrites[1].dstSet = _descriptorSets[name][i];
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
