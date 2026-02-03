@@ -191,7 +191,7 @@ void etib::AApp::cleanup()
     }
     vkFreeMemory(_logicalDevice, _textureImageMemory, nullptr);
 
-    for (size_t i = 0; i < (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size()); i++) {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(_logicalDevice, _uniformBuffers[i], nullptr);
         vkFreeMemory(_logicalDevice, _uniformBuffersMemory[i], nullptr);
     }
@@ -211,7 +211,7 @@ void etib::AApp::cleanup()
 
     vkDestroyRenderPass(_logicalDevice, _renderPass, nullptr);
 
-    for (size_t i = 0; i < (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size()); i++) {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(_logicalDevice, _renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(_logicalDevice, _imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(_logicalDevice, _inFlightFences[i], nullptr);
@@ -834,7 +834,7 @@ void etib::AApp::createCommandPool()
 
 void etib::AApp::createCommandBuffers()
 {
-    _commandBuffers.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
+    _commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -894,9 +894,7 @@ void etib::AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t ima
 
     vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (const auto &[_, material]: _materials) {
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &material.descriptorSets[_currentFrame], 0, nullptr);
-    }
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_materials[_currentFrame].descriptorSets, 0, nullptr);
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(_indices.size()), 1, 0, 0, 0);
 
@@ -984,14 +982,14 @@ void etib::AApp::drawFrame()
     }
 
     std::cout << "Frame " << _currentFrame << " drawn successfully." << std::endl;
-    _currentFrame = (_currentFrame + 1) % (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
+    _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     std::cout << "Moving to next frame: " << _currentFrame << std::endl;
 }
 
 void etib::AApp::createSyncObjects() {
-    _imageAvailableSemaphores.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
-    _renderFinishedSemaphores.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
-    _inFlightFences.resize(_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size());
+    _imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    _renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    _inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1000,7 +998,7 @@ void etib::AApp::createSyncObjects() {
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (size_t i = 0; i < (_materials.size() < MAX_FRAMES_IN_FLIGHT ? MAX_FRAMES_IN_FLIGHT : _materials.size()); i++) {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkCreateSemaphore(_logicalDevice, &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]) != VK_SUCCESS ||
             vkCreateSemaphore(_logicalDevice, &semaphoreInfo, nullptr, &_renderFinishedSemaphores[i]) != VK_SUCCESS ||
             vkCreateFence(_logicalDevice, &fenceInfo, nullptr, &_inFlightFences[i]) != VK_SUCCESS) {
@@ -1164,13 +1162,11 @@ void etib::AApp::createUniformBuffers()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() : MAX_FRAMES_IN_FLIGHT);
+    _uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    _uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+    _uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
-    _uniformBuffers.resize(maxDescriptorCount);
-    _uniformBuffersMemory.resize(maxDescriptorCount);
-    _uniformBuffersMapped.resize(maxDescriptorCount);
-
-    for (size_t i = 0; i < maxDescriptorCount; i++) {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         this->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
 
         vkMapMemory(_logicalDevice, _uniformBuffersMemory[i], 0, bufferSize, 0, &_uniformBuffersMapped[i]);
@@ -1194,19 +1190,17 @@ void etib::AApp::updateUniformBuffer(uint32_t currentImage)
 
 void etib::AApp::createDescriptorPool()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() : MAX_FRAMES_IN_FLIGHT);
-
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = maxDescriptorCount;
+    poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = maxDescriptorCount;
+    poolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = maxDescriptorCount;
+    poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 
     if (vkCreateDescriptorPool(_logicalDevice, &poolInfo, nullptr, &_descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
@@ -1215,21 +1209,19 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() : MAX_FRAMES_IN_FLIGHT);
-    std::vector<VkDescriptorSetLayout> layouts(maxDescriptorCount, _descriptorSetLayout);
+    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = _descriptorPool;
-    allocInfo.descriptorSetCount = maxDescriptorCount;
+    allocInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
     allocInfo.pSetLayouts = layouts.data();
 
-    std::cout << "Creating Descriptor Sets for " << _materials.size() << " materials and " << maxDescriptorCount << " max descriptors." << std::endl;
-    for (auto [name, material]: _materials) {
-        material.descriptorSets.resize(maxDescriptorCount);
+    for (auto &[name, material]: _materials) {
+        material.descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
         if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, material.descriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
-        for (size_t i = 0; i < maxDescriptorCount; i++) {
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = _uniformBuffers[i];
             bufferInfo.offset = 0;
