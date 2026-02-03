@@ -1177,7 +1177,7 @@ void etib::AApp::updateUniformBuffer(uint32_t currentImage)
 
 void etib::AApp::createDescriptorPool()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() + 1 : MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() : MAX_FRAMES_IN_FLIGHT);
 
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1198,7 +1198,7 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() + 1 : MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() : MAX_FRAMES_IN_FLIGHT);
     std::vector<VkDescriptorSetLayout> layouts(maxDescriptorCount, _descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
