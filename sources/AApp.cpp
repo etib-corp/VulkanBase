@@ -668,10 +668,14 @@ void etib::AApp::createGraphicsPipeline()
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
+    std::vector<VkDescriptorSetLayout> layouts;
+    for (const auto& [_, layout] : _descriptorSetLayout) {
+        layouts.push_back(layout);
+    }
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
+    pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(layouts.size());
+    pipelineLayoutInfo.pSetLayouts = layouts.data();
 
     if (vkCreatePipelineLayout(_logicalDevice, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
@@ -1202,14 +1206,18 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    for (auto [name, descriptor]: _descriptorSetLayout) {
-        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptor);
+    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT);
+
+    for (const auto& [_, layout] : _descriptorSetLayout) {
+        layouts.push_back(layout);
+    }
+    for (auto [name, imageView]: _textureImageView) {
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = _descriptorPool;
         allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         allocInfo.pSetLayouts = layouts.data();
-        
+
         _descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
         if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
@@ -1219,14 +1227,14 @@ void etib::AApp::createDescriptorSets()
             bufferInfo.buffer = _uniformBuffers[i];
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
-            
+
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = _textureImageView[name];
+            imageInfo.imageView = imageView;
             imageInfo.sampler = _textureSampler[name];
-            
+
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-            
+
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = _descriptorSets[i];
             descriptorWrites[0].dstBinding = 0;
@@ -1234,7 +1242,7 @@ void etib::AApp::createDescriptorSets()
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrites[0].descriptorCount = 1;
             descriptorWrites[0].pBufferInfo = &bufferInfo;
-            
+
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[1].dstSet = _descriptorSets[i];
             descriptorWrites[1].dstBinding = 1;
@@ -1242,7 +1250,7 @@ void etib::AApp::createDescriptorSets()
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].pImageInfo = &imageInfo;
-            
+
             vkUpdateDescriptorSets(_logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
     }
@@ -1297,7 +1305,7 @@ void etib::AApp::createTextureImage(const std::string &texturePath)
     VkDeviceMemory stagingBufferMemory;
 
     if (!pixels) {
-        throw std::runtime_error("failed to load texture image :" + std::string(stbi_failure_reason()));
+        throw std::runtime_error("[" + texturePath + "]" + "Failed to load texture image :" + std::string(stbi_failure_reason()));
     }
 
     _mipLevels[texturePath] = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
