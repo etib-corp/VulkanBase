@@ -894,7 +894,7 @@ void etib::AApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t ima
 
     vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-    for (auto &material : _materials) {
+    for (auto &[_, material] : _materials) {
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &material.descriptorSets[_currentFrame], 0, nullptr);
     }
 
