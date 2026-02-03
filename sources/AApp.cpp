@@ -1198,7 +1198,7 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() : MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_materials.size() < MAX_FRAMES_IN_FLIGHT ? _materials.size() + 1 : MAX_FRAMES_IN_FLIGHT);
     std::vector<VkDescriptorSetLayout> layouts(maxDescriptorCount, _descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -1207,11 +1207,11 @@ void etib::AApp::createDescriptorSets()
     allocInfo.pSetLayouts = layouts.data();
 
     for (auto [name, material]: _materials) {
-        material.descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        material.descriptorSets.resize(maxDescriptorCount);
         if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, material.descriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < maxDescriptorCount; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = _uniformBuffers[i];
             bufferInfo.offset = 0;
