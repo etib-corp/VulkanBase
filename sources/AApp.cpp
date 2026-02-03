@@ -1202,7 +1202,7 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    uint32_t maxDescriptorCount = static_cast<uint32_t>(_textureImage.size() < MAX_FRAMES_IN_FLIGHT ? _textureImage.size() : MAX_FRAMES_IN_FLIGHT);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_textureImage.size() < MAX_FRAMES_IN_FLIGHT ? _textureImage.size() + 1 : MAX_FRAMES_IN_FLIGHT);
     std::vector<VkDescriptorSetLayout> layouts(maxDescriptorCount, _descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
