@@ -1202,19 +1202,20 @@ void etib::AApp::createDescriptorPool()
 
 void etib::AApp::createDescriptorSets()
 {
-    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
+    uint32_t maxDescriptorCount = static_cast<uint32_t>(_descriptorSets.size() < MAX_FRAMES_IN_FLIGHT ? _descriptorSets.size() : MAX_FRAMES_IN_FLIGHT);
+    std::vector<VkDescriptorSetLayout> layouts(maxDescriptorCount, _descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = _descriptorPool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.descriptorSetCount = maxDescriptorCount;
     allocInfo.pSetLayouts = layouts.data();
 
     for (auto [name, imageView]: _textureImageView) {
-        _descriptorSets[name].resize(MAX_FRAMES_IN_FLIGHT);
+        _descriptorSets[name].resize(maxDescriptorCount);
         if (vkAllocateDescriptorSets(_logicalDevice, &allocInfo, _descriptorSets[name].data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < maxDescriptorCount; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = _uniformBuffers[i];
             bufferInfo.offset = 0;
